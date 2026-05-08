@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '../db';dd
+import { db } from '../db';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
