@@ -2,7 +2,7 @@ import  { useState, useEffect } from 'react';
 import { synchroniserDonnees } from '../syncService';
 
 
-const Profil = ({onLogout}) => {
+const Profil = ({onLogout, installButtonVisible, installMessage, handleInstallClick}) => {
   const [syncStatus, setSyncStatus] = useState('À jour');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -71,7 +71,32 @@ const Profil = ({onLogout}) => {
           </div>
           <span className="arrow">›</span>
         </div>
-                {/* BOUTON DECONNEXION */}
+
+        {/* INSTALLATION PWA */}
+        {installButtonVisible && (
+          <div className="menu-item install-item" onClick={handleInstallClick} style={{ border: '1px solid #007bff' }}>
+            <div className="menu-item-left">
+              <span className="menu-icon" style={{ background: '#e7f3ff' }}>📱</span>
+              <div>
+                <strong>Installer l'application</strong>
+                <small>Disponible sur ce navigateur</small>
+              </div>
+            </div>
+            <span className="arrow">›</span>
+          </div>
+        )}
+
+        {/* MESSAGE INSTALLATION */}
+        {installMessage && (
+          <div className="menu-item" style={{ background: '#f0f9f0', border: '1px solid #1a7f1a', color: '#1a7f1a' }}>
+            <div className="menu-item-left">
+              <span className="menu-icon" style={{ background: '#e8f5e8' }}>✅</span>
+              <strong>{installMessage}</strong>
+            </div>
+          </div>
+        )}
+
+        {/* BOUTON DECONNEXION */}
         <div className="menu-item logout-item" onClick={onLogout} style={{ border: '1px solid #ff4d4d' }}>
           <div className="menu-item-left">
             <span className="menu-icon" style={{ background: '#fff0f0' }}>🚪</span>

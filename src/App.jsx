@@ -140,7 +140,7 @@ function App() {
             <Route path="/historique" element={<Historique />} />
             
             {/* On passe la fonction handleLogout au composant Profil */}
-            <Route path="/profil" element={<Profil onLogout={handleLogout} />} />
+            <Route path="/profil" element={<Profil onLogout={handleLogout} installButtonVisible={installButtonVisible} installMessage={installMessage} handleInstallClick={handleInstallClick} />} />
           </Routes>
         </div>
         
