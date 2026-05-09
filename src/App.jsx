@@ -9,8 +9,9 @@ import Historique from './pages/Historique';
 import Profil from './pages/Profil';
 import { synchroniserDonnees } from './syncService';
 import './App.css';
+import Login from './pages/Login';
 
-// Composant pour la barre de navigation du bas
+// --- NAVIGATION DU BAS ---
 const BottomNav = ({ cartCount }) => {
   const location = useLocation();
   return (
@@ -38,44 +39,112 @@ const BottomNav = ({ cartCount }) => {
   );
 };
 
+// --- COMPOSANT PRINCIPAL ---
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // Le panier est géré ici pour être partagé entre POS et Panier
   const [cart, setCart] = useState([]);
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [installButtonVisible, setInstallButtonVisible] = useState(false);
+  const [installMessage, setInstallMessage] = useState('');
 
   useEffect(() => {
+    // Synchronisation automatique quand internet revient
     const handleOnline = async () => {
-      console.log("Internet revenu ! Synchro auto...");
       await synchroniserDonnees();
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, []);
 
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setInstallPromptEvent(e);
+      setInstallButtonVisible(true);
+      console.log('beforeinstallprompt capturé');
+    };
+
+    const handleAppInstalled = () => {
+      setInstallMessage('Application installée ✅');
+      setInstallButtonVisible(false);
+      setInstallPromptEvent(null);
+      console.log('application installée');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPromptEvent) return;
+
+    installPromptEvent.prompt();
+    const choiceResult = await installPromptEvent.userChoice;
+
+    if (choiceResult.outcome === 'accepted') {
+      setInstallButtonVisible(false);
+      setInstallMessage('Installation acceptée ✅');
+    } else {
+      setInstallMessage('Installation refusée. Vous pouvez réessayer plus tard.');
+    }
+    setInstallPromptEvent(null);
+  };
+
+  // Fonction appelée quand le login réussit
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
+  // Fonction appelée depuis le bouton "Déconnexion" du Profil
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Nettoie la session
+    setIsLoggedIn(false); // Renvoie à la page Login
+  };
+
+  // Si l'utilisateur n'est pas connecté, on affiche UNIQUEMENT la page Login
   if (!isLoggedIn) {
-    return (
-      <div className="login-container">
-        <button onClick={() => setIsLoggedIn(true)}>Se connecter</button>
-      </div>
-    );
+    return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
+  // Calcul du nombre d'articles dans le panier
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // Si l'utilisateur EST connecté, on affiche l'application
   return (
     <Router>
       <div className="app-layout">
         <div className="main-content">
-          <Routes>
+        {installButtonVisible && (
+          <div className="install-banner" style={{padding: '10px', background: '#eef7ff', borderRadius: '10px', marginBottom: '12px', textAlign: 'center'}}>
+            <button className="btn-install" onClick={handleInstallClick} style={{padding: '10px 16px', fontSize: '0.95rem', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#007bff', color: '#fff'}}>
+              Installer l'application
+            </button>
+          </div>
+        )}
+        {installMessage && (
+          <div style={{padding: '8px 12px', background: '#f0f9f0', borderRadius: '8px', marginBottom: '12px', color: '#1a7f1a', fontSize: '0.95rem'}}>
+            {installMessage}
+          </div>
+        )}
+        <Routes>
             <Route path="/" element={<Accueil />} />
             <Route path="/pos" element={<POS cart={cart} setCart={setCart} />} />
             <Route path="/panier" element={<Panier cart={cart} setCart={setCart} />} />
             <Route path="/stock" element={<Stock />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/historique" element={<Historique />} />
-            <Route path="/profil" element={<Profil />} />
+            
+            {/* On passe la fonction handleLogout au composant Profil */}
+            <Route path="/profil" element={<Profil onLogout={handleLogout} />} />
           </Routes>
         </div>
+        
+        {/* La barre de navigation reste visible tout le temps */}
         <BottomNav cartCount={cartItemsCount} />
       </div>
     </Router>
@@ -83,4 +152,6 @@ function App() {
 }
 
 export default App;
+
+
 

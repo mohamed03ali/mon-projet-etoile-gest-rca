@@ -11,4 +11,6 @@ db.version(1).stores({
 }); 
 
 
+ 
+
 // --- Synchronisation avec le backend ---

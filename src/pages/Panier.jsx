@@ -7,7 +7,7 @@ const Panier = ({ cart, setCart }) => {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [clientNom, setClientNom] = useState('Comptant');
-  const [adresse, setAdresse] = useState(''); // NOUVEAU CHAMP ADRESSE
+  const [telephone, setTelephone] = useState(''); // Numéro de téléphone du client
   const [typePaiement, setTypePaiement] = useState('complet');
   const [saleSuccess, setSaleSuccess] = useState(null);
 
@@ -34,13 +34,21 @@ const Panier = ({ cart, setCart }) => {
       let finalName = clientNom.trim() || 'Comptant';
       let clientDb = await db.clients.where('nom').equalsIgnoreCase(finalName).first();
       
+      const finalPhone = telephone.trim();
       if (!clientDb && finalName !== 'Comptant') {
-        const newId = await db.clients.add({ nom: finalName, telephone: '', dette: 0 });
+        const newId = await db.clients.add({ nom: finalName, telephone: finalPhone, dette: 0 });
         clientDb = await db.clients.get(newId);
       }
 
-      if (clientDb && typePaiement === 'credit') {
-        await db.clients.update(clientDb.id, { dette: clientDb.dette + total });
+      if (clientDb) {
+        if (finalName !== 'Comptant' && finalPhone) {
+          await db.clients.update(clientDb.id, { telephone: finalPhone });
+          clientDb = await db.clients.get(clientDb.id);
+        }
+
+        if (typePaiement === 'credit') {
+          await db.clients.update(clientDb.id, { dette: clientDb.dette + total });
+        }
       }
 
       const saleData = {
@@ -48,7 +56,7 @@ const Panier = ({ cart, setCart }) => {
         items: cart,
         total_price: total,
         client: finalName,
-        adresse: adresse, // Ajout de l'adresse à la vente
+        telephone: finalPhone,
         status: typePaiement === 'credit' ? 'Dette' : 'Payé',
         synced: 0
       };
@@ -60,8 +68,8 @@ const Panier = ({ cart, setCart }) => {
         await db.products.update(item.id, { stock_quantity: p.stock_quantity - item.quantity });
       }
 
-      setSaleSuccess({ id: localSaleId, total, client: finalName, status: saleData.status });
-      setCart([]); setClientNom('Comptant'); setAdresse(''); setTypePaiement('complet');
+      setSaleSuccess({ id: localSaleId, total, client: finalName, telephone: finalPhone, status: saleData.status });
+      setCart([]); setClientNom('Comptant'); setTelephone(''); setTypePaiement('complet');
       synchroniserDonnees(); // Tente de synchroniser en arrière-plan
 
     } catch (err) { alert("Erreur : " + err.message); }
@@ -77,6 +85,7 @@ const Panier = ({ cart, setCart }) => {
           <div className="success-client-card">
             <small>CLIENT</small>
             <h2>{saleSuccess.client}</h2>
+            <small>{saleSuccess.telephone ? `📞 ${saleSuccess.telephone}` : 'Pas de téléphone'}</small>
             {saleSuccess.status === 'Dette' && <p style={{color:'#ffc107'}}>⚠️ Ajouté à la dette</p>}
           </div>
           <button className="btn-new-sale" onClick={() => { setSaleSuccess(null); navigate('/pos'); }}>
@@ -110,13 +119,17 @@ const Panier = ({ cart, setCart }) => {
           <input type="text" list="clients-list" placeholder="Nom du client" value={clientNom} onChange={e => setClientNom(e.target.value)} className="client-input" />
           <datalist id="clients-list"><option value="Comptant" />{clients.map(c => <option key={c.id} value={c.nom} />)}</datalist>
           
-          <input type="text" placeholder="Adresse de livraison (Optionnelle)" value={adresse} onChange={e => setAdresse(e.target.value)} className="client-input" style={{marginTop: '10px'}} />
+          <input type="tel" placeholder="Téléphone du client" value={telephone} onChange={e => setTelephone(e.target.value)} className="client-input" style={{marginTop: '10px'}} inputMode="tel" maxLength="15" />
 
           <div className="payment-toggle" style={{marginTop: '15px'}}>
             <label><input type="radio" checked={typePaiement === 'complet'} onChange={() => setTypePaiement('complet')} /> Payé</label>
             <label><input type="radio" checked={typePaiement === 'credit'} onChange={() => setTypePaiement('credit')} /> À Crédit</label>
           </div>
 
+          <div className="client-summary" style={{marginTop: '15px', padding: '10px', border: '1px solid #ddd', borderRadius: '8px', background: '#fafafa'}}>
+            <small>Client actuel</small>
+            <p style={{margin: '6px 0 0', fontWeight: 600}}>{clientNom || 'Comptant'}{telephone ? ` • ${telephone}` : ''}</p>
+          </div>
           <div className="total-row-ui"><span>TOTAL</span><span className="total-amount-ui">{total.toLocaleString()} FCFA</span></div>
           <button className="btn-ui-checkout" onClick={handleCheckout}>✓ Valider la vente</button>
         </div>

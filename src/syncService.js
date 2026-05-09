@@ -1,7 +1,7 @@
 // src/syncService.js
 import { db } from './db';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const synchroniserDonnees = async () => {
   if (!navigator.onLine) {

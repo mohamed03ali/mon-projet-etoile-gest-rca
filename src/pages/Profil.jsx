@@ -1,7 +1,8 @@
 import  { useState, useEffect } from 'react';
 import { synchroniserDonnees } from '../syncService';
 
-const Profil = () => {
+
+const Profil = ({onLogout}) => {
   const [syncStatus, setSyncStatus] = useState('À jour');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -70,6 +71,15 @@ const Profil = () => {
           </div>
           <span className="arrow">›</span>
         </div>
+                {/* BOUTON DECONNEXION */}
+        <div className="menu-item logout-item" onClick={onLogout} style={{ border: '1px solid #ff4d4d' }}>
+          <div className="menu-item-left">
+            <span className="menu-icon" style={{ background: '#fff0f0' }}>🚪</span>
+            <strong style={{ color: '#ff4d4d' }}>Se déconnecter</strong>
+          </div>
+          <span className="arrow">›</span>
+        </div>
+
       </div>
     </div>
   );

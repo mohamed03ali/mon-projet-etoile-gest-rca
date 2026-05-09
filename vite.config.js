@@ -12,15 +12,15 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: 'Gestionnaire des taches hors ligne',
-        short_name: 'Taches PWA',
+        name: 'Gestionnaire des stocks hors ligne',
+        short_name: 'Gestion-etoile',
         description: 'une application qui fonctionne sans internet',
         theme_color: '#ffffff',
         icons: [
           {
-            src: '/vite.svg',
+            src: '/logo192.jpg',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/jpg',
           },
         ],
       },

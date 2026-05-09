@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { db } from '../db';
+import { db } from '../db';  
 import logo from '../assets/logo.jpg';
 
 const Accueil = () => {
