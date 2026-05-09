@@ -137,7 +137,7 @@ const Stock = () => {
                     </td>
                     <td>
                       <button className="btn-edit">✏️modifier</button>
-                      <button className="btn-delete" onClick={() => handleDelete(product.id)}>🗑️supp</button>
+                      <button className="btn-delete" onClick={() => handleDelete(product.id)}>🗑️supprimer</button>
                     </td>
                   </tr>
                 ))}
